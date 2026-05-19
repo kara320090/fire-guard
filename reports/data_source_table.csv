@@ -1,0 +1,9 @@
+﻿category,data_name,source,raw_path,use_case,status,note
+전력설비,강원도 전력설비 위치 데이터,대회 제공/한국전력공사,data/raw/contest/contest_data_1.zip,설비 위치·밀도·점검 우선순위,프로파일링 완료,poles_clean.parquet 생성
+기상관측,AWS 시간자료,기상자료개방포털,data/raw/kma_aws,고해상도 기상 feature,예정,기온 습도 강수 풍속 풍향
+기상관측,ASOS 시간자료,기상자료개방포털,data/raw/kma_asos,기준 관측값·결측 보정,예정,시간 단위 검증용
+기상관측,ASOS 일자료,기상자료개방포털,data/raw/kma_asos,일 단위 기준값,예정,기상 집계 검증용
+메타데이터,관측소 메타데이터,기상자료개방포털,data/raw/kma_station_meta,grid-기상 공간 매칭,예정,지점번호 위도 경도 고도
+특보,건조·강풍 특보,기상자료개방포털,data/raw/kma_warning,위험 이벤트 feature,예정,건조특보 강풍특보
+분석환경,날씨마루 Python,기상청 날씨마루,notebooks/00_nalssimaru_check.ipynb,기초 EDA·재현성 확보,예정,화면 캡처 및 코드 저장 필요
+규정근거,기상청 추가자료 활용 가능 회신,기상청 이메일,reports/kma_reply_capture.png,추가자료 활용 근거,확보,ASOS AWS 메타데이터 특보 활용 가능
