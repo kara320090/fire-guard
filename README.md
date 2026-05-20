@@ -26,5 +26,18 @@ ASOS/AWS 관측자료, 건조·강풍 특보, 전력설비 위치 데이터를 �
 ## Current Status
 
 - contest_data_1.zip 확보
-- 한전 전력설비 위치 데이터 프로파일링 예정
-- AWS/ASOS/특보 데이터 다운로드 예정
+- 한전 전력설비 위치 데이터 프로파일링 완료
+  - rows: 1,387,831
+  - columns: pole_id, lon, lat
+  - missing/invalid coordinates: 0
+  - duplicated pole_id: 0
+- EPSG:4326 → EPSG:5179 좌표 변환 완료
+- 1km grid 생성 완료
+  - active grid count: 9,908
+  - mean pole count per grid: 140.07
+  - max pole count per grid: 1,289
+- grid 전력설비 밀도 지도 생성 완료
+- 다음 작업:
+  - pole_base.parquet 생성
+  - submission_template.csv 생성
+  - AWS/ASOS/관측소 메타데이터/건조·강풍 특보 샘플 다운로드
