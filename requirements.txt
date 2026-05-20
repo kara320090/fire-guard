@@ -4,3 +4,6 @@ pyarrow
 openpyxl
 matplotlib
 folium
+branca
+pyproj
+scikit-learn
