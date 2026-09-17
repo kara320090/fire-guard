@@ -1,43 +1,81 @@
-﻿# FIRE-GUARD 3.0
+# FIRE-GUARD 3.0
 
-## Project Title
+**기상·공간 데이터를 결합해 전력설비 주변의 화재 위험을 분석하고 예방점검 우선순위를 제시하는 프로젝트입니다.**
 
-FIRE-GUARD:
-2-Stage 기상·공간 융합 앙상블 기반 전력설비 화재위험 예측 및 예방점검 우선순위 시스템
+Python · Pandas · Geo-processing · PyProj · Folium · 규칙 기반 위험도 분석
 
-## Definition
+## 문제와 접근
 
-ASOS/AWS 관측자료, 건조·강풍 특보, 전력설비 위치 데이터를 결합해 전력설비 인근 화재위험을 단계적으로 탐지하고, 고위험 설비의 예방점검 우선순위를 제시하는 의사결정 시스템입니다.
+기상 위험만으로는 어느 설비부터 점검할지 결정하기 어렵습니다. 전력설비 좌표를 1km 격자로 묶고, 가까운 AWS/ASOS 관측소의 기상 정보와 건조·강풍 특보를 결합해 격자와 개별 설비의 점검 우선순위를 계산합니다.
 
-## Main Outputs
+현재 저장소의 결과는 **설명 가능한 규칙 기반 baseline**입니다. 학습된 화재 예측 모델의 정확도나 실제 사고 예방 효과를 측정한 결과와는 구분합니다.
 
-1. Grid별 화재위험도 지도
-2. 고위험 grid Top-N
-3. 고위험 pole_id Top-N
-4. 점검 우선순위표
-5. 위험 원인 설명 카드
-6. Streamlit 또는 HTML 기반 결과 시각화
+## 분석 흐름
 
-## Data Policy
+```mermaid
+flowchart LR
+    A["전력설비 좌표"] --> B["좌표 변환·1km 격자"]
+    C["AWS·ASOS·관측소 정보"] --> D["일 단위 특성·최근접 관측소 매칭"]
+    E["건조·강풍 특보"] --> F["격자 위험도 산정"]
+    B --> F
+    D --> F
+    F --> G["개별 설비 위험도"]
+    G --> H["점검 우선순위·지도·제출 CSV"]
+```
 
-사용한 모든 데이터는 출처를 명확히 기록합니다.
-기상청 회신에 따라 ASOS/AWS 관측자료, 관측소 메타데이터, 건조·강풍 특보 자료는 feature 생성, 공간 매칭, 보조 분석 및 검증 용도로 활용합니다.
+## 저장된 결과
 
-## Current Status
+[최종 요약](reports/FIRE_GUARD_final_summary.md)과 [구조 검수 기록](reports/final_submission_check_report.md)에 아래 산출물이 정리되어 있습니다.
 
-- contest_data_1.zip 확보
-- 한전 전력설비 위치 데이터 프로파일링 완료
-  - rows: 1,387,831
-  - columns: pole_id, lon, lat
-  - missing/invalid coordinates: 0
-  - duplicated pole_id: 0
-- EPSG:4326 → EPSG:5179 좌표 변환 완료
-- 1km grid 생성 완료
-  - active grid count: 9,908
-  - mean pole count per grid: 140.07
-  - max pole count per grid: 1,289
-- grid 전력설비 밀도 지도 생성 완료
-- 다음 작업:
-  - pole_base.parquet 생성
-  - submission_template.csv 생성
-  - AWS/ASOS/관측소 메타데이터/건조·강풍 특보 샘플 다운로드
+| 항목 | 저장된 기록 |
+|---|---|
+| 대상 전력설비 | 1,387,831개 |
+| 선택한 제출 후보 | 상위 약 5%의 `top5` baseline |
+| 선정 설비 | 69,392개 |
+| CSV 구조 | `pole_id`, `lon`, `lat`, `decision` |
+| 기록된 검수 | 행 수, 필수 열, 결측·중복과 decision 값 검수 |
+
+위 숫자는 저장소의 기존 분석 보고서에 기록된 값입니다. CSV 구조 검수 통과는 화재 예측 성능의 검증을 의미하지 않습니다.
+
+## 핵심 코드
+
+| 단계 | 파일 |
+|---|---|
+| 좌표·격자 생성 | [03_build_grid_1km.py](src/03_build_grid_1km.py) |
+| 관측소 매칭 | [14_match_grid_station.py](src/14_match_grid_station.py) |
+| 일별 특성 구성 | [15_make_grid_day_features.py](src/15_make_grid_day_features.py) |
+| 격자 위험도 | [18_make_grid_risk_scores.py](src/18_make_grid_risk_scores.py) |
+| 설비별 후보 | [19_make_pole_risk_and_submissions.py](src/19_make_pole_risk_and_submissions.py) |
+| 지도 생성 | [21_make_risk_maps.py](src/21_make_risk_maps.py) |
+| 제출 파일 검수 | [23_finalize_submission_package.py](src/23_finalize_submission_package.py) |
+
+## 재현 방법
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python src/00_check_project.py
+```
+
+원자료와 중간 산출물은 [데이터 목록](reports/data_inventory.md), [현재 파이프라인 상태](PROJECT_STATUS.md)를 기준으로 준비합니다. 대용량·원천 데이터가 모두 GitHub에 포함된 것은 아니므로 구조 점검에서 누락 경로를 먼저 확인합니다. 기존 분석 파일명은 주로 `202503` 기간을 사용합니다.
+
+필요한 중간 데이터가 준비된 환경에서는 저장소 루트에서 다음 후반 파이프라인을 실행합니다.
+
+```powershell
+python src/18_make_grid_risk_scores.py
+python src/19_make_pole_risk_and_submissions.py
+python src/21_make_risk_maps.py
+python src/23_finalize_submission_package.py
+```
+
+## 자료와 후속 과제
+
+- [최종 산출물 명세](submission/submission_manifest.md)
+- [위험도 분석 보고서](reports/grid_risk_scores_report.md)
+- [최종 구조 검수](reports/final_submission_check_report.md)
+- 실제 화재 라벨 확보 후 지도학습·임계값 검증
+- 지형·산림·토지피복·현장 접근성 정보 보강
+- 계절·기간을 확장한 결과 비교
+
+ASOS/AWS 관측과 관측소 메타데이터·특보는 특성 생성, 공간 매칭과 분석에 사용합니다. 데이터 출처와 활용 범위는 프로젝트 보고서에서 관리합니다.
